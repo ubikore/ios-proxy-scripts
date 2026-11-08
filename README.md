@@ -6,7 +6,7 @@ iOS 代理工具的重写配置与脚本。目前提供 Quantumult X 的 Reddit 
 
 | App | 功能 | 客户端 | 重写订阅 |
 | --- | --- | --- | --- |
-| Reddit | 删除信息流中的广告条目，支持 JSON 和 GraphQL multipart 响应 | Quantumult X | [RedditAds.conf](https://raw.githubusercontent.com/ubikore/ios-proxy-scripts/main/rewrite/QuantumultX/RedditAds.conf) |
+| Reddit | 过滤信息流广告，并拦截独立 Ads 请求；支持 JSON 和 GraphQL multipart 响应 | Quantumult X | [RedditAds.conf](https://raw.githubusercontent.com/ubikore/ios-proxy-scripts/main/rewrite/QuantumultX/RedditAds.conf) |
 
 复制以下地址，在 Quantumult X「重写 → 引用」中添加：
 
@@ -29,8 +29,10 @@ ios-proxy-scripts/
 ├── rewrite/
 │   └── QuantumultX/
 │       └── RedditAds.conf
-└── scripts/
-    └── reddit-adblock.js
+├── scripts/
+│   └── reddit-adblock.js
+└── tests/
+    └── reddit-adblock.test.cjs
 ```
 
 - `rewrite/<客户端>/`：按客户端存放重写配置，声明匹配规则、脚本地址和 MitM 主机名。
@@ -40,9 +42,15 @@ ios-proxy-scripts/
 
 ## Reddit 脚本说明
 
-当前版本：`v1.1.0`（2026-11-08）。只删除广告条目，不修改会员状态或 NSFW 偏好。
+当前版本：`v1.2.0`（2026-11-08）。过滤广告条目，并按原规则的行为，对请求头 `X-APOLLO-OPERATION-NAME` 中名称包含 `Ads`（不区分大小写）的操作返回空对象。此类独立广告请求可能不含 `edges`，旧版实现遗漏了这项处理。请求头名称同样按大小写不敏感读取。不修改会员状态或 NSFW 偏好。
 
 已通过原抓包离线回放：33 个匹配响应中删除 2 条广告，保留 33 个正常条目及分页数据；另验证了 JSON、multipart 分段边界、异常输入与广告标记变体。尚未在 iPhone / Quantumult X 内实测，效果可能随 Reddit 接口变化而改变。
+
+帖子页独立 Ads 请求的回归测试使用合成数据；现有抓包不包含帖子页广告响应，仍需手机端验证。运行本地回归测试：
+
+```sh
+node --test tests/reddit-adblock.test.cjs
+```
 
 ## 参考
 

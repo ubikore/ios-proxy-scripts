@@ -1,8 +1,9 @@
 /*
- * Reddit QX ad filter v1.1.0 (2026-11-08)
+ * Reddit QX ad filter v1.2.0 (2026-11-08)
  * Original rule reference: @ddgksf2013, RedditAds.conf / reddit.js.
  * Independent readable implementation; handles JSON and GraphQL multipart.
- * Only removes ad edges. Leaves account flags and content preferences intact.
+ * Removes ad edges and suppresses dedicated Ads operations.
+ * Leaves account flags and content preferences intact.
  */
 (function () {
   "use strict";
@@ -52,6 +53,14 @@
   }
 
   try {
+    // The original rule also suppresses separate post/comment ad queries.
+    // Their payloads need not use the feed's edges/node structure.
+    var operation = header(typeof $request !== "undefined" ? $request.headers : {},
+      "x-apollo-operation-name");
+    if (typeof operation === "string" && /Ads/i.test(operation)) {
+      console.log("[Reddit adblock] suppressed ad operation: " + operation);
+      return $done({ body: "{}" });
+    }
     var body = $response.body;
     if (typeof body !== "string" || !body.trim()) return $done({});
     var contentType = header($response.headers, "content-type");
