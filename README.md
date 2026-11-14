@@ -49,7 +49,9 @@ ios-proxy-scripts/
 
 已通过原抓包离线回放：33 个匹配响应中删除 2 条广告，保留 33 个正常条目及分页数据；另验证了 JSON、multipart 分段边界、异常输入与广告标记变体。尚未在 iPhone / Quantumult X 内实测，效果可能随 Reddit 接口变化而改变。
 
-帖子页独立 Ads 请求的回归测试使用合成数据；现有抓包不包含帖子页广告响应，仍需手机端验证。运行本地回归测试：
+重写配置 `v1.2.1`（2026-11-14）加入 `cf.gql-fed.reddit.com` 的 MitM 和 URL 匹配。11 月 9 日的抓包回放确认，更新后会抑制这个主机上的 `PdpCommentsAds`，并从 `HomeFeedSdui` 移除 2 条广告。手机端仍需刷新订阅后验证。
+
+运行本地回归测试：
 
 ```sh
 node --test tests/reddit-adblock.test.cjs
